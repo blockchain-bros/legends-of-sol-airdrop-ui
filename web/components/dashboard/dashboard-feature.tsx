@@ -1,5 +1,6 @@
 'use client';
 
+import { toast } from "react-hot-toast";
 import { useCallback, useEffect, useState } from 'react';
 import { AppHero } from '../ui/ui-layout';
 import idl from '@/anchor/idl/merkle_airdrop.json';
@@ -77,7 +78,7 @@ export default function DashboardFeature() {
     }
     // index is the index of the account in the file
 
-    console.log('index of claimor', claimIndex);
+    toast('index of claimor', claimIndex);
     const index = (amountsByRecipient as Account[]).findIndex(
       (e: Account) =>
         e.account.toString() === anchorWallet.publicKey?.toBase58()
@@ -186,6 +187,10 @@ export default function DashboardFeature() {
         <div className="space-y-2 ">
           <button onClick={handleClaim} className="btn btn-lg btn-primary">
             CLAIM {claimAmount} $LEGEND
+          </button>
+
+          <button onClick={getClaimAmount}>
+          trigger claim check
           </button>
         </div>
       </div>
