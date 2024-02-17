@@ -1,26 +1,30 @@
 [
-    {
-        "account": "7AGZL8i43P4LByeLn491K2TyWGqwJbeUMNCDF3QsnpRj",
-        "amount": 100
-    },
-    {
-        "account": "95uedNsUFqhc1sgbFWHVX929YvyD78EKRhNN7T8VQCAU",
-        "amount": 100
-    },
-    {
-        "account": "HPxdckBZUtHdegYi8X8zWf2GUnoATToX5Yfqv8eDbn5P",
-        "amount": 100
-    },
-    {
-        "account": "Ezu6jJeFqqhZz8JRFMFAFsTKkHu9AkmaCWhe5Hf53r8V",
-        "amount": 100
-    },
-    {
-        "account": "7KmGdkyczQQzDQZEdoXLkQq7njFeX3AJ9Tp746tMztqt",
-        "amount": 100
-    },
-    {
-        "account": "831P6jYjPnga3fAsz6VhbQoDi4BuGWTSDYJNxUcoMrES",
-        "amount": 100
-    }
+  {
+    "account": "7AGZL8i43P4LByeLn491K2TyWGqwJbeUMNCDF3QsnpRj",
+    "amount": 100001
+  },
+  {
+    "account": "95uedNsUFqhc1sgbFWHVX929YvyD78EKRhNN7T8VQCAU",
+    "amount": 10000
+  },
+  {
+    "account": "HPxdckBZUtHdegYi8X8zWf2GUnoATToX5Yfqv8eDbn5P",
+    "amount": 10000
+  },
+  {
+    "account": "Ezu6jJeFqqhZz8JRFMFAFsTKkHu9AkmaCWhe5Hf53r8V",
+    "amount": 10000
+  },
+  {
+    "account": "7KmGdkyczQQzDQZEdoXLkQq7njFeX3AJ9Tp746tMztqt",
+    "amount": 10000
+  },
+  {
+    "account": "831P6jYjPnga3fAsz6VhbQoDi4BuGWTSDYJNxUcoMrES",
+    "amount": 10000
+  },
+  {
+    "account": "BeEMuaaQCQPodQdaA7W6Rmsu7761vCabN4Tth6jA4VCP",
+    "amount": 10000
+  }
 ]
