@@ -190,19 +190,12 @@ export default function DashboardFeature() {
       recentBlockhash: latestBlockHashClaim.blockhash,
     });
     txClaim.add(...[computeBudgetIx, claimIxn]);
-    try{
-      const response = await (provider as AnchorProvider).sendAndConfirm(txClaim);
+     await (provider as AnchorProvider).sendAndConfirm(txClaim);
     
-    if(response){
-      console.log(response);
-      toast.success("CLAIMED");
-    }
+    toast.success("CLAIMED");
 
     console.log(merkleRoot);
     console.log(verificationData);
-    }catch(e){
-      toast.error(JSON.stringify(e));
-    }
   }, [anchorWallet, claimIndex, connection]);
   return (
     <div className="w-full">
