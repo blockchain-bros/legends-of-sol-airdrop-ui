@@ -102,100 +102,104 @@ export default function DashboardFeature() {
 
   const handleClaim = useCallback(async () => {
     if (!anchorWallet) return;
-    const [provider, merkleAirdropProgram] = getAnchorEnvironment(
-      idl as Idl,
-      anchorWallet,
-      connection,
-      new PublicKey(idl.metadata.address)
-    );
+    try {
+      const [provider, merkleAirdropProgram] = getAnchorEnvironment(
+        idl as Idl,
+        anchorWallet,
+        connection,
+        new PublicKey(idl.metadata.address)
+      );
 
-    const amountsByRecipient: Account[] = [];
+      const amountsByRecipient: Account[] = [];
 
-    for (const line of airdropData as []) {
-      const { account, amount } = line;
-      amountsByRecipient.push({
-        account: new PublicKey(account),
-        // the amount must be multiplied by decimal points
-        amount: new BN(Number(amount)),
+      for (const line of airdropData as []) {
+        const { account, amount } = line;
+        amountsByRecipient.push({
+          account: new PublicKey(account),
+          // the amount must be multiplied by decimal points
+          amount: new BN(Number(amount)),
+        });
+      }
+
+      const tree = new BalanceTree(amountsByRecipient as Account[]);
+      const merkleRoot = tree.getRoot();
+      console.log('merkleRoot', merkleRoot);
+      const tokenMint = new PublicKey(mint);
+
+      // merkle proof
+      const proofStrings: Buffer[] = tree.getProof(
+        claimIndex,
+        (amountsByRecipient as Account[])[claimIndex].account,
+        (amountsByRecipient as Account[])[claimIndex].amount
+      );
+      const proofBytes: number[][] = proofStrings.map((p) => toBytes32Array(p));
+
+      let verificationData = Buffer.allocUnsafe(8);
+      verificationData.writeBigUInt64LE(BigInt(claimIndex));
+
+      const [airdropState] = PublicKey.findProgramAddressSync(
+        [Buffer.from('airdrop_state'), tokenMint.toBuffer(), merkleRoot],
+        new PublicKey(idl.metadata.address)
+      );
+      const vault = associatedAddress({ mint: tokenMint, owner: airdropState });
+
+      // the receipt must be here since it is only the first 8 bytes rather than the complete data
+      const [receipt] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('receipt'),
+          airdropState.toBuffer(),
+          anchorWallet.publicKey!.toBuffer(),
+          verificationData,
+        ],
+        new PublicKey(idl.metadata.address)
+      );
+
+      for (const proofElem of proofBytes) {
+        verificationData = Buffer.concat([
+          verificationData,
+          Buffer.from(proofElem),
+        ]);
+      }
+      const computeBudgetIx = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 400_000,
       });
-    }
 
-    const tree = new BalanceTree(amountsByRecipient as Account[]);
-    const merkleRoot = tree.getRoot();
-    console.log('merkleRoot', merkleRoot);
-    const tokenMint = new PublicKey(mint);
-
-    // merkle proof
-    const proofStrings: Buffer[] = tree.getProof(
-      claimIndex,
-      (amountsByRecipient as Account[])[claimIndex].account,
-      (amountsByRecipient as Account[])[claimIndex].amount
-    );
-    const proofBytes: number[][] = proofStrings.map((p) => toBytes32Array(p));
-
-    let verificationData = Buffer.allocUnsafe(8);
-    verificationData.writeBigUInt64LE(BigInt(claimIndex));
-
-    const [airdropState] = PublicKey.findProgramAddressSync(
-      [Buffer.from('airdrop_state'), tokenMint.toBuffer(), merkleRoot],
-      new PublicKey(idl.metadata.address)
-    );
-    const vault = associatedAddress({ mint: tokenMint, owner: airdropState });
-
-    // the receipt must be here since it is only the first 8 bytes rather than the complete data
-    const [receipt] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('receipt'),
-        airdropState.toBuffer(),
-        anchorWallet.publicKey!.toBuffer(),
-        verificationData,
-      ],
-      new PublicKey(idl.metadata.address)
-    );
-
-    for (const proofElem of proofBytes) {
-      verificationData = Buffer.concat([
-        verificationData,
-        Buffer.from(proofElem),
-      ]);
-    }
-    const computeBudgetIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: 400_000,
-    });
-
-    const claimIxn = await (merkleAirdropProgram as Program<Idl>).methods
-      .claim(
-        toBytes32Array(merkleRoot),
-        amountsByRecipient[claimIndex].amount,
-        verificationData
-      )
-      .accounts({
-        owner: anchorWallet.publicKey!,
-        ownerMintAta: associatedAddress({
-          mint: tokenMint,
+      const claimIxn = await (merkleAirdropProgram as Program<Idl>).methods
+        .claim(
+          toBytes32Array(merkleRoot),
+          amountsByRecipient[claimIndex].amount,
+          verificationData
+        )
+        .accounts({
           owner: anchorWallet.publicKey!,
-        }),
-        tokenMint,
-        receipt,
-        airdropState,
-        vault,
-        splTokenProgram: TOKEN_PROGRAM_ID,
-        ataProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      })
-      //.signers([wallet])
-      .instruction();
+          ownerMintAta: associatedAddress({
+            mint: tokenMint,
+            owner: anchorWallet.publicKey!,
+          }),
+          tokenMint,
+          receipt,
+          airdropState,
+          vault,
+          splTokenProgram: TOKEN_PROGRAM_ID,
+          ataProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        //.signers([wallet])
+        .instruction();
 
-    const latestBlockHashClaim = await connection.getLatestBlockhash();
-    const txClaim = new Transaction({
-      recentBlockhash: latestBlockHashClaim.blockhash,
-    });
-    txClaim.add(...[computeBudgetIx, claimIxn]);
-     await (provider as AnchorProvider).sendAndConfirm(txClaim);
+      const latestBlockHashClaim = await connection.getLatestBlockhash();
+      const txClaim = new Transaction({
+        recentBlockhash: latestBlockHashClaim.blockhash,
+      });
+      txClaim.add(...[computeBudgetIx, claimIxn]);
+      await (provider as AnchorProvider).sendAndConfirm(txClaim);
 
-    toast.success("CLAIMED");
+      toast.success('CLAIMED');
 
-    console.log(merkleRoot);
-    console.log(verificationData);
+      console.log(merkleRoot);
+      console.log(verificationData);
+    } catch (e) {
+      toast.error('Claim failed');
+    }
   }, [anchorWallet, claimIndex, connection]);
   return (
     <div className="w-full">
