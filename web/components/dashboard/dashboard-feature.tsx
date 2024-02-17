@@ -61,13 +61,13 @@ export default function DashboardFeature() {
   const { connection } = useConnection();
 
   const [claimAmount, setclaimAmount] = useState(0);
+  const [merkleTree, setTree] = useState("");
   const [claimIndex, setClaimIndex] = useState(0);
 
   const getClaimAmount = useCallback(async () => {
     if (!anchorWallet) {
-toast.error("no wallet")
+    toast.error("Connect your wallet")
     return;}
-
 
     const amountsByRecipient: Account[] = [];
 
@@ -89,6 +89,7 @@ toast.error("no wallet")
     toast("claim amount: "+amountsByRecipient[index].amount.toNumber())
     setClaimIndex(index);
     setclaimAmount(amountsByRecipient[index].amount.toNumber());
+    setTree(JSON.parse(JSON.stringify(amountsByRecipient)));
   }, [anchorWallet, claimIndex]);
 
   useEffect(() => {
@@ -103,10 +104,11 @@ toast.error("no wallet")
       connection,
       new PublicKey(idl.metadata.address)
     );
-    const amountsByRecipient: Account[] = [];
+    const amountsByRecipient: Account[] = JSON.parse(merkleTree);
 
     console.log('amount to claim', amountsByRecipient);
     // merkle root tree
+  
     const tree = new BalanceTree(amountsByRecipient as Account[]);
     const merkleRoot = tree.getRoot();
     console.log('merkleRoot', merkleRoot);
