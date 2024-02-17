@@ -86,7 +86,7 @@ toast.error("no wallet")
       (e: Account) =>
         e.account.toString() === anchorWallet.publicKey?.toBase58()
     );
-    tast("claim amount: "+amountsByRecipient[index].amount.toNumber())
+    toast("claim amount: "+amountsByRecipient[index].amount.toNumber())
     setClaimIndex(index);
     setclaimAmount(amountsByRecipient[index].amount.toNumber());
   }, [anchorWallet, claimIndex]);
