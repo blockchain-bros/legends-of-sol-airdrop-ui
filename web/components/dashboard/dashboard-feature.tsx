@@ -1,6 +1,6 @@
 'use client';
 
-import { toast } from "react-hot-toast";
+import { toast } from 'react-hot-toast';
 import { useCallback, useEffect, useState } from 'react';
 import { AppHero } from '../ui/ui-layout';
 import idl from '@/anchor/idl/merkle_airdrop.json';
@@ -61,13 +61,13 @@ export default function DashboardFeature() {
   const { connection } = useConnection();
 
   const [claimAmount, setclaimAmount] = useState(0);
-  const [merkleTree, setTree] = useState("");
-  const [claimIndex, setClaimIndex] = useState(0);
+  const [claimIndex, setClaimIndex] = useState(-1);
 
   const getClaimAmount = useCallback(async () => {
     if (!anchorWallet) {
-    toast.error("Connect your wallet")
-    return;}
+      toast.error('Connect your wallet');
+      return;
+    }
 
     const amountsByRecipient: Account[] = [];
 
@@ -81,15 +81,19 @@ export default function DashboardFeature() {
     }
     // index is the index of the account in the file
 
-    toast('index of claimor: '  + claimIndex);
+    toast('(debug) index of claimor: ' + claimIndex);
     const index = (amountsByRecipient as Account[]).findIndex(
       (e: Account) =>
         e.account.toString() === anchorWallet.publicKey?.toBase58()
     );
-    toast("claim amount: "+amountsByRecipient[index].amount.toNumber())
+    const amount = amountsByRecipient[index].amount.toNumber();
+    if (amount) {
+      toast('Claim Amount: ' + amount);
+    } else {
+      toast('Sorry, no claim');
+    }
     setClaimIndex(index);
-    setclaimAmount(amountsByRecipient[index].amount.toNumber());
-    setTree(JSON.parse(JSON.stringify(amountsByRecipient)));
+    setclaimAmount(amount);
   }, [anchorWallet, claimIndex]);
 
   useEffect(() => {
@@ -104,11 +108,18 @@ export default function DashboardFeature() {
       connection,
       new PublicKey(idl.metadata.address)
     );
-    const amountsByRecipient: Account[] = JSON.parse(merkleTree);
 
-    console.log('amount to claim', amountsByRecipient);
-    // merkle root tree
-  
+    const amountsByRecipient: Account[] = [];
+
+    for (const line of airdropData as []) {
+      const { account, amount } = line;
+      amountsByRecipient.push({
+        account: new PublicKey(account),
+        // the amount must be multiplied by decimal points
+        amount: new BN(Number(amount)),
+      });
+    }
+
     const tree = new BalanceTree(amountsByRecipient as Account[]);
     const merkleRoot = tree.getRoot();
     console.log('merkleRoot', merkleRoot);
@@ -179,25 +190,37 @@ export default function DashboardFeature() {
       recentBlockhash: latestBlockHashClaim.blockhash,
     });
     txClaim.add(...[computeBudgetIx, claimIxn]);
-    await (provider as AnchorProvider).sendAndConfirm(txClaim);
+    try{
+      const response = await (provider as AnchorProvider).sendAndConfirm(txClaim);
+    
+    if(response){
+      console.log(response);
+      toast.success("CLAIMED");
+    }
+
     console.log(merkleRoot);
     console.log(verificationData);
+    }catch(e){
+      toast.error(JSON.stringify(e));
+    }
   }, [anchorWallet, claimIndex, connection]);
   return (
-    <div className='w-full'>
+    <div className="w-full">
       <AppHero
         title="Claim your $LEGEND!"
-        subtitle={"Come on tough guy, press the button"}
+        subtitle={'Come on tough guy, press the button'}
       />
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
         <div className="space-y-2 ">
-          <button onClick={handleClaim} className="btn btn-lg btn-primary">
-            CLAIM {claimAmount} $LEGEND
-          </button>
+          {claimIndex > -1 && (
+            <button onClick={handleClaim} className="btn btn-lg btn-primary">
+              CLAIM {claimAmount} $LEGEND
+            </button>
+          )}
 
-          <button onClick={getClaimAmount}>
-          trigger claim check
-          </button>
+          {claimIndex === -1 && (
+            <button onClick={getClaimAmount}>Check your claim!</button>
+          )}
         </div>
       </div>
     </div>
