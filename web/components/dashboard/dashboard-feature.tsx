@@ -35,7 +35,7 @@ type Account = {
   account: PublicKey;
   amount: BN;
 };
-const mint = 'DhNTo4YgbDKfRinZernczqmv4epjz9rWJYgRFYXh53pc';
+const mint = '4BhZrniBMbeiQ5JUxYtws1f9YMstpW4pJ4ZymXHTD1Cz';
 
 const toBytes32Array = (b: Buffer): number[] => {
   const buf = Buffer.alloc(32);
@@ -191,7 +191,7 @@ export default function DashboardFeature() {
     });
     txClaim.add(...[computeBudgetIx, claimIxn]);
      await (provider as AnchorProvider).sendAndConfirm(txClaim);
-    
+
     toast.success("CLAIMED");
 
     console.log(merkleRoot);
