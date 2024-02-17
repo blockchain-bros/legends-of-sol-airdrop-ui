@@ -64,7 +64,10 @@ export default function DashboardFeature() {
   const [claimIndex, setClaimIndex] = useState(0);
 
   const getClaimAmount = useCallback(async () => {
-    if (!anchorWallet) return;
+    if (!anchorWallet) {
+toast.error("no wallet")
+    return;}
+
 
     const amountsByRecipient: Account[] = [];
 
@@ -78,11 +81,12 @@ export default function DashboardFeature() {
     }
     // index is the index of the account in the file
 
-    toast('index of claimor', claimIndex);
+    toast('index of claimor: '  + claimIndex);
     const index = (amountsByRecipient as Account[]).findIndex(
       (e: Account) =>
         e.account.toString() === anchorWallet.publicKey?.toBase58()
     );
+    tast("claim amount: "+amountsByRecipient[index].amount.toNumber())
     setClaimIndex(index);
     setclaimAmount(amountsByRecipient[index].amount.toNumber());
   }, [anchorWallet, claimIndex]);
