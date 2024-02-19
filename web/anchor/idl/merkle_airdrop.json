@@ -29,6 +29,11 @@
           "isSigner": false
         },
         {
+          "name": "treasury",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "airdropState",
           "isMut": false,
           "isSigner": false,
@@ -353,6 +358,6 @@
     }
   ],
   "metadata": {
-    "address": "8G1Zd5aWCDorL2EjMeLmU1RPktPiu4W6J9DcTg4WmVTB"
+    "address": "5hY83Jo4XGQ76rkiW5n2ER5J6bdGEaRR82kjZPoTjxTB"
   }
 }

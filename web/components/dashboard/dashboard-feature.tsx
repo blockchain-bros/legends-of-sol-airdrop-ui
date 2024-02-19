@@ -31,11 +31,12 @@ import {
 } from '@coral-xyz/anchor/dist/cjs/utils/token';
 import { ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
+
 type Account = {
   account: PublicKey;
   amount: BN;
 };
-const mint = 'Ay7A8B1cCs9SZhdPEmmAVePBQYDSft3MmSr4Zo7tJ6T';
+const mint = 'BMLdVBMQfVFya5PhfZg7cSH6ZxuhswETQeuR2d3125aY';
 
 const toBytes32Array = (b: Buffer): number[] => {
   const buf = Buffer.alloc(32);
@@ -89,7 +90,7 @@ export default function DashboardFeature() {
     );
     const amount = amountsByRecipient[index].amount.toNumber();
     if (amount) {
-      toast('Claim Amount: ' + amount / 1e9 + ' $LEGEND');
+      toast('Claim Amount: ' + amount + ' $LEGEND');
     } else {
       toast('Sorry, no claim');
     }
@@ -110,8 +111,17 @@ export default function DashboardFeature() {
       console.log(provider);
 
       const amountsByRecipient: Account[] = [];
+      for (const line of airdropData as []) {
+        const { account, amount } = line;
+        amountsByRecipient.push({
+          account: new PublicKey(account),
+          // the amount must be multiplied by decimal points
+          amount: new BN(Number(amount * 1e6)),
+        });
+      }
 
       const tree = new BalanceTree(amountsByRecipient as Account[]);
+
       const merkleRoot = tree.getRoot();
       console.log('merkleRoot', merkleRoot);
       const tokenMint = new PublicKey(mint);
@@ -136,9 +146,14 @@ export default function DashboardFeature() {
       );
       const data = await (
         merkleAirdropProgram as Program<Idl>
-      ).account.merkleAidrop.getAccountInfo(receipt);
-      setClaimStatus(data?.toString() || '');
+      ).account.receipt.getAccountInfo(receipt);
+      if (data?.data) {
+        setClaimStatus('Claimed');
+      } else {
+        setClaimStatus('Unclaimed');
+      }
     } catch (e) {
+      console.log(e);
       setClaimStatus('Unclaimed');
     }
   }, [anchorWallet, claimIndex, connection]);
@@ -146,7 +161,7 @@ export default function DashboardFeature() {
   useEffect(() => {
     if (anchorWallet?.publicKey) getClaimAmount();
     if (anchorWallet?.publicKey) checkStatus();
-  }, [anchorWallet, checkStatus, getClaimAmount]);
+  }, [anchorWallet, claimIndex, checkStatus, getClaimAmount]);
 
   const handleClaim = useCallback(async () => {
     if (!anchorWallet) return;
@@ -159,13 +174,12 @@ export default function DashboardFeature() {
       );
 
       const amountsByRecipient: Account[] = [];
-
       for (const line of airdropData as []) {
         const { account, amount } = line;
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount)),
+          amount: new BN(Number(amount * 1e6)),
         });
       }
 
@@ -225,6 +239,7 @@ export default function DashboardFeature() {
             owner: anchorWallet.publicKey!,
           }),
           tokenMint,
+          treasury: new PublicKey('Ezu6jJeFqqhZz8JRFMFAFsTKkHu9AkmaCWhe5Hf53r8V'),
           receipt,
           airdropState,
           vault,
@@ -255,12 +270,14 @@ export default function DashboardFeature() {
         title="Claim your $LEGEND!"
         subtitle={'Come on tough guy, press the button'}
       />
-      claim status: {claimStatus}
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
+        <div className='space-y-8'>
+          Airdrop {claimStatus}
+        </div>
         <div className="space-y-2 ">
           {claimIndex > -1 && (
-            <button onClick={handleClaim} className="btn btn-lg btn-primary">
-              CLAIM {claimAmount / 1e9} $LEGEND
+            <button disabled={claimStatus==="Claimed"} onClick={handleClaim} className="btn btn-lg btn-primary">
+              CLAIM {claimAmount} $LEGEND
             </button>
           )}
 
