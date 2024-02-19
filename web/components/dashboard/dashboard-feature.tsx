@@ -30,7 +30,7 @@ import {
   associatedAddress,
 } from '@coral-xyz/anchor/dist/cjs/utils/token';
 import { ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
-
+import { set } from '@coral-xyz/anchor/dist/cjs/utils/features';
 
 type Account = {
   account: PublicKey;
@@ -83,7 +83,7 @@ export default function DashboardFeature() {
     }
     // index is the index of the account in the file
 
-    toast('(debug) index of claimor: ' + claimIndex);
+    //    toast('(debug) index of claimor: ' + claimIndex);
     const index = (amountsByRecipient as Account[]).findIndex(
       (e: Account) =>
         e.account.toString() === anchorWallet.publicKey?.toBase58()
@@ -93,10 +93,11 @@ export default function DashboardFeature() {
       toast('Claim Amount: ' + amount + ' $LEGEND');
     } else {
       toast('Sorry, no claim');
+      setClaimIndex(-1);
     }
     setClaimIndex(index);
     setclaimAmount(amount);
-  }, [anchorWallet, claimIndex]);
+  }, [anchorWallet]);
 
   const checkStatus = useCallback(async () => {
     if (!anchorWallet) return;
@@ -239,7 +240,9 @@ export default function DashboardFeature() {
             owner: anchorWallet.publicKey!,
           }),
           tokenMint,
-          treasury: new PublicKey('Ezu6jJeFqqhZz8JRFMFAFsTKkHu9AkmaCWhe5Hf53r8V'),
+          treasury: new PublicKey(
+            'Ezu6jJeFqqhZz8JRFMFAFsTKkHu9AkmaCWhe5Hf53r8V'
+          ),
           receipt,
           airdropState,
           vault,
@@ -271,13 +274,21 @@ export default function DashboardFeature() {
         subtitle={'Come on tough guy, press the button'}
       />
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
-        <div className='space-y-8'>
-          Airdrop {claimStatus}
-        </div>
+        <div className="space-y-8">Airdrop {claimStatus}</div>
         <div className="space-y-2 ">
           {claimIndex > -1 && (
-            <button disabled={claimStatus==="Claimed"} onClick={handleClaim} className="btn btn-lg btn-primary">
+            <button
+              disabled={claimStatus === 'Claimed'}
+              onClick={handleClaim}
+              className="btn btn-lg btn-primary"
+            >
               CLAIM {claimAmount} $LEGEND
+            </button>
+          )}
+
+          {claimIndex === -1 && (
+            <button disabled={true} className="btn btn-lg btn-primary">
+              No claim
             </button>
           )}
 
