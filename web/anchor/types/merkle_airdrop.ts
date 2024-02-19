@@ -29,6 +29,11 @@ export type MerkleAirdrop = {
           "isSigner": false
         },
         {
+          "name": "treasury",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "airdropState",
           "isMut": false,
           "isSigner": false,
@@ -381,6 +386,11 @@ export const IDL: MerkleAirdrop = {
         },
         {
           "name": "receipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasury",
           "isMut": true,
           "isSigner": false
         },
