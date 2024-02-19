@@ -124,7 +124,7 @@ export default function DashboardFeature() {
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * 1)),
+          amount: new BN(Number(amount * Math.pow(10, 9))),
         });
       }
 
@@ -188,7 +188,7 @@ export default function DashboardFeature() {
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * 1)),
+          amount: new BN(Number(amount * Math.pow(10, 9))),
         });
       }
 
@@ -249,7 +249,7 @@ export default function DashboardFeature() {
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * 1)),
+          amount: new BN(Number(amount * Math.pow(10, 9))),
         });
       }
 
