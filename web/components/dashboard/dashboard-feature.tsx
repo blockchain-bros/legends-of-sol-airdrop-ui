@@ -344,7 +344,9 @@ export default function DashboardFeature() {
       />
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
         <div className="space-y-2 flex flex-col gap-8">
-        <div className="font-bold py-4">{claimChecked ? `Airdrop ${anchorWallet?.publicKey && claimStatus}`: <span className="loading loading-spinner"></span>}</div>
+        <div className="font-bold py-4">
+          {claimChecked ? `Airdrop ${claimStatus}`: anchorWallet?.publicKey  ? <span className="loading loading-spinner"></span>: 'Connect your wallet'}
+          </div>
           {claimIndex > -1 && (
             <button
               disabled={claimStatus === 'Claimed'}
