@@ -37,14 +37,14 @@ export function toWalletAdapterNetwork(
 
 export const defaultClusters: Cluster[] = [
   {
-    name: 'devnet',
-    endpoint: clusterApiUrl('devnet'),
-    network: ClusterNetwork.Devnet,
-  },
-  {
     name: 'mainnet-beta',
     endpoint: "https://chaotic-green-spree.solana-mainnet.quiknode.pro/",
     network: ClusterNetwork.Mainnet,
+  },
+  {
+    name: 'devnet',
+    endpoint: clusterApiUrl('devnet'),
+    network: ClusterNetwork.Devnet,
   },
 ];
 

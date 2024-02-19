@@ -35,7 +35,7 @@ type Account = {
   account: PublicKey;
   amount: BN;
 };
-const mint = '2LgNBB7sNcGnGegNkWkstZhQD1y262PcYqueew1yZgt4';
+const mint = 'LGNDeXXXaDDeRerwwHfUtPBNz5s6vrn1NMSt9hdaCwx';
 
 
 const toBytes32Array = (b: Buffer): number[] => {
@@ -344,7 +344,7 @@ export default function DashboardFeature() {
       />
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
         <div className="space-y-2 flex flex-col gap-8">
-        <div className="font-bold py-4">{claimChecked ? `Airdrop ${claimStatus}`: <span className="loading loading-spinner"></span>}</div>
+        <div className="font-bold py-4">{claimChecked ? `Airdrop ${anchorWallet?.publicKey && claimStatus}`: <span className="loading loading-spinner"></span>}</div>
           {claimIndex > -1 && (
             <button
               disabled={claimStatus === 'Claimed'}
