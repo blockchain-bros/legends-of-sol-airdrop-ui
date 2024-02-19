@@ -36,7 +36,7 @@ type Account = {
   account: PublicKey;
   amount: BN;
 };
-const mint = 'BMLdVBMQfVFya5PhfZg7cSH6ZxuhswETQeuR2d3125aY';
+const mint = '6xk1j9PFMHNkYnFCsuKGDwxxfUeLLVZtomWpCpy7AwkX';
 
 const toBytes32Array = (b: Buffer): number[] => {
   const buf = Buffer.alloc(32);
