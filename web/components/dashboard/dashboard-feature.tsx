@@ -63,6 +63,7 @@ export default function DashboardFeature() {
   const [claimAmount, setclaimAmount] = useState(0);
   const [claimIndex, setClaimIndex] = useState(-1);
   const [claimStatus, setClaimStatus] = useState('' as string);
+  const [claimChecked, setClaimChecked] = useState(false);
 
   const getClaimAmount = useCallback(async () => {
     if (!anchorWallet) {
@@ -91,13 +92,16 @@ export default function DashboardFeature() {
       const amount = amountsByRecipient[index].amount.toNumber();
       if (!amount) {
         toast('Sorry, no claim');
+        setClaimChecked(true);
         setClaimIndex(-1);
       }
       setClaimIndex(index);
+      setClaimChecked(true);
       setclaimAmount(amount);
     } catch (e) {
       toast('Sorry, no claim');
       setClaimIndex(-1);
+      setClaimChecked(true);
   }
   }, [anchorWallet]);
 
@@ -338,8 +342,8 @@ export default function DashboardFeature() {
         subtitle={'Come on tough guy, press the button'}
       />
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
-        <div className="space-y-8">Airdrop {claimStatus}</div>
         <div className="space-y-2 flex flex-col gap-8">
+        <div className="font-bold py-4">{claimChecked ? `Airdrop ${claimStatus}`: <span className="loading loading-spinner"></span>}</div>
           {claimIndex > -1 && (
             <button
               disabled={claimStatus === 'Claimed'}
