@@ -35,7 +35,8 @@ type Account = {
   account: PublicKey;
   amount: BN;
 };
-const mint = '5a1N2qJGQJWW1T7GtYe3mDn2oF2PigPukNLpbdWDTWgo';
+const mint = 'LGNDWdLatceN2Td6yK6kA9A34HF489ZJ3RR6n7QqUxG';
+
 
 const toBytes32Array = (b: Buffer): number[] => {
   const buf = Buffer.alloc(32);
@@ -123,7 +124,7 @@ export default function DashboardFeature() {
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * 1e6)),
+          amount: new BN(Number(amount * 1)),
         });
       }
 
@@ -187,7 +188,7 @@ export default function DashboardFeature() {
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * 1e6)),
+          amount: new BN(Number(amount * 1)),
         });
       }
 
@@ -230,7 +231,7 @@ export default function DashboardFeature() {
     } catch (e) {
       toast.error('Withdraw failed');
     }
-  }, [anchorWallet, claimIndex, connection]);
+  }, [anchorWallet, connection]);
 
   const handleClaim = useCallback(async () => {
     if (!anchorWallet) return;
@@ -248,7 +249,7 @@ export default function DashboardFeature() {
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * 1e6)),
+          amount: new BN(Number(amount * 1)),
         });
       }
 
