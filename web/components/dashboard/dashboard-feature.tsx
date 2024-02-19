@@ -329,13 +329,13 @@ export default function DashboardFeature() {
       await (provider as AnchorProvider).sendAndConfirm(txClaim);
 
       toast.success('CLAIMED');
-
-      console.log(merkleRoot);
-      console.log(verificationData);
+      await checkStatus();
+ //     console.log(merkleRoot);
+  //    console.log(verificationData);
     } catch (e) {
       toast.error('Claim failed');
     }
-  }, [anchorWallet, claimIndex, connection]);
+  }, [anchorWallet,checkStatus, claimIndex, connection]);
   return (
     <div className="w-full">
       <AppHero
