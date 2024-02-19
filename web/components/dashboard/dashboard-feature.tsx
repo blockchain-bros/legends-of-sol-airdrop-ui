@@ -362,7 +362,7 @@ export default function DashboardFeature() {
           )}
 
           
-          {anchorWallet?.publicKey.toBase58() === "HF3CBT9JFfgN3S61JWAduB8mT2SmsgtRihFZvnyvjQQK" && (
+          {anchorWallet?.publicKey.toBase58() === "2Lgnds8d5LW4AE7LdfxwmSHBrrYZSwHJHXrenbzcpvV2" && (
             <button className="btn btn-secondary" onClick={handleWithdraw}>
               Withdraw tokens
             </button>
