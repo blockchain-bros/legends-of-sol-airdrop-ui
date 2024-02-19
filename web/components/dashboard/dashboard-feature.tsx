@@ -30,13 +30,12 @@ import {
   associatedAddress,
 } from '@coral-xyz/anchor/dist/cjs/utils/token';
 import { ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { set } from '@coral-xyz/anchor/dist/cjs/utils/features';
 
 type Account = {
   account: PublicKey;
   amount: BN;
 };
-const mint = '6xk1j9PFMHNkYnFCsuKGDwxxfUeLLVZtomWpCpy7AwkX';
+const mint = '5a1N2qJGQJWW1T7GtYe3mDn2oF2PigPukNLpbdWDTWgo';
 
 const toBytes32Array = (b: Buffer): number[] => {
   const buf = Buffer.alloc(32);
@@ -88,15 +87,18 @@ export default function DashboardFeature() {
       (e: Account) =>
         e.account.toString() === anchorWallet.publicKey?.toBase58()
     );
-    const amount = amountsByRecipient[index].amount.toNumber();
-    if (amount) {
-      toast('Claim Amount: ' + amount + ' $LEGEND');
-    } else {
+    try {
+      const amount = amountsByRecipient[index].amount.toNumber();
+      if (!amount) {
+        toast('Sorry, no claim');
+        setClaimIndex(-1);
+      }
+      setClaimIndex(index);
+      setclaimAmount(amount);
+    } catch (e) {
       toast('Sorry, no claim');
       setClaimIndex(-1);
-    }
-    setClaimIndex(index);
-    setclaimAmount(amount);
+  }
   }, [anchorWallet]);
 
   const checkStatus = useCallback(async () => {
@@ -163,6 +165,68 @@ export default function DashboardFeature() {
     if (anchorWallet?.publicKey) getClaimAmount();
     if (anchorWallet?.publicKey) checkStatus();
   }, [anchorWallet, claimIndex, checkStatus, getClaimAmount]);
+
+  const handleWithdraw = useCallback(async () => {
+    if (!anchorWallet) return;
+
+    try {
+      const [provider, merkleAirdropProgram] = getAnchorEnvironment(
+        idl as Idl,
+        anchorWallet,
+        connection,
+        new PublicKey(idl.metadata.address)
+      );
+
+      const amountsByRecipient: Account[] = [];
+      for (const line of airdropData as []) {
+        const { account, amount } = line;
+        amountsByRecipient.push({
+          account: new PublicKey(account),
+          // the amount must be multiplied by decimal points
+          amount: new BN(Number(amount * 1e6)),
+        });
+      }
+
+      const tree = new BalanceTree(amountsByRecipient as Account[]);
+      const merkleRoot = tree.getRoot();
+      console.log('merkleRoot', merkleRoot);
+      const tokenMint = new PublicKey(mint);
+
+      const [airdropState] = PublicKey.findProgramAddressSync(
+        [Buffer.from('airdrop_state'), tokenMint.toBuffer(), merkleRoot],
+        new PublicKey(idl.metadata.address)
+      );
+      const vault = associatedAddress({ mint: tokenMint, owner: airdropState });
+
+      const claimIxn = await (merkleAirdropProgram as Program<Idl>).methods
+        .withdrawFromVault(toBytes32Array(merkleRoot))
+        .accounts({
+          authority: anchorWallet.publicKey!,
+          authorityMintAta: associatedAddress({
+            mint: tokenMint,
+            owner: anchorWallet.publicKey!,
+          }),
+          tokenMint,
+          airdropState,
+          vault,
+          splTokenProgram: TOKEN_PROGRAM_ID,
+          ataProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        })
+        //.signers([wallet])
+        .instruction();
+
+      const latestBlockHashClaim = await connection.getLatestBlockhash();
+      const txClaim = new Transaction({
+        recentBlockhash: latestBlockHashClaim.blockhash,
+      });
+      txClaim.add(...[claimIxn]);
+      await (provider as AnchorProvider).sendAndConfirm(txClaim);
+
+      toast.success('WITHDRAWN');
+    } catch (e) {
+      toast.error('Withdraw failed');
+    }
+  }, [anchorWallet, claimIndex, connection]);
 
   const handleClaim = useCallback(async () => {
     if (!anchorWallet) return;
@@ -241,7 +305,7 @@ export default function DashboardFeature() {
           }),
           tokenMint,
           treasury: new PublicKey(
-            'Ezu6jJeFqqhZz8JRFMFAFsTKkHu9AkmaCWhe5Hf53r8V'
+            'ZLaxD5u1CQdZhK4TimQYb5MizHj4xd2kTW9FQPRpooL'
           ),
           receipt,
           airdropState,
@@ -292,8 +356,11 @@ export default function DashboardFeature() {
             </button>
           )}
 
-          {claimIndex === -1 && (
-            <button onClick={getClaimAmount}>Check your claim!</button>
+          
+          {anchorWallet?.publicKey.toBase58() === "HF3CBT9JFfgN3S61JWAduB8mT2SmsgtRihFZvnyvjQQK" && (
+            <button className="btn btn-secondary" onClick={handleWithdraw}>
+              Withdraw tokens
+            </button>
           )}
         </div>
       </div>
