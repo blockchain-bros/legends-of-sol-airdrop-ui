@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppHero } from '../ui/ui-layout';
 import idl from '@/anchor/idl/merkle_airdrop.json';
 
-import airdropData from '@/anchor/airdrop-data.json';
+import airdropData from '@/anchor/amounts.json';
 import {
   AnchorWallet,
   useAnchorWallet,
@@ -35,7 +35,7 @@ type Account = {
   account: PublicKey;
   amount: BN;
 };
-const mint = '97kqYdAEb1pp5Xkh41knzv8M6X29Nh6DigAkktD2rPDc';
+const mint = 'CdtkZ4H5sYrbpTFhnVVrX4bKVSBEPg2BatjQFD6TusTT';
 
 const toBytes32Array = (b: Buffer): number[] => {
   const buf = Buffer.alloc(32);
@@ -62,6 +62,7 @@ export default function DashboardFeature() {
 
   const [claimAmount, setclaimAmount] = useState(0);
   const [claimIndex, setClaimIndex] = useState(-1);
+  const [claimStatus, setClaimStatus] = useState('' as string);
 
   const getClaimAmount = useCallback(async () => {
     if (!anchorWallet) {
@@ -88,7 +89,7 @@ export default function DashboardFeature() {
     );
     const amount = amountsByRecipient[index].amount.toNumber();
     if (amount) {
-      toast('Claim Amount: ' + amount);
+      toast('Claim Amount: ' + amount / 1e9 + ' $LEGEND');
     } else {
       toast('Sorry, no claim');
     }
@@ -96,9 +97,56 @@ export default function DashboardFeature() {
     setclaimAmount(amount);
   }, [anchorWallet, claimIndex]);
 
+  const checkStatus = useCallback(async () => {
+    if (!anchorWallet) return;
+    try {
+      const [provider, merkleAirdropProgram] = getAnchorEnvironment(
+        idl as Idl,
+        anchorWallet,
+        connection,
+        new PublicKey(idl.metadata.address)
+      );
+
+      console.log(provider);
+
+      const amountsByRecipient: Account[] = [];
+
+      const tree = new BalanceTree(amountsByRecipient as Account[]);
+      const merkleRoot = tree.getRoot();
+      console.log('merkleRoot', merkleRoot);
+      const tokenMint = new PublicKey(mint);
+
+      const verificationData = Buffer.allocUnsafe(8);
+      verificationData.writeBigUInt64LE(BigInt(claimIndex));
+
+      const [airdropState] = PublicKey.findProgramAddressSync(
+        [Buffer.from('airdrop_state'), tokenMint.toBuffer(), merkleRoot],
+        new PublicKey(idl.metadata.address)
+      );
+
+      // the receipt must be here since it is only the first 8 bytes rather than the complete data
+      const [receipt] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('receipt'),
+          airdropState.toBuffer(),
+          anchorWallet.publicKey!.toBuffer(),
+          verificationData,
+        ],
+        new PublicKey(idl.metadata.address)
+      );
+      const data = await (
+        merkleAirdropProgram as Program<Idl>
+      ).account.merkleAidrop.getAccountInfo(receipt);
+      setClaimStatus(data?.toString() || '');
+    } catch (e) {
+      setClaimStatus('Unclaimed');
+    }
+  }, [anchorWallet, claimIndex, connection]);
+
   useEffect(() => {
     if (anchorWallet?.publicKey) getClaimAmount();
-  }, [anchorWallet, getClaimAmount]);
+    if (anchorWallet?.publicKey) checkStatus();
+  }, [anchorWallet, checkStatus, getClaimAmount]);
 
   const handleClaim = useCallback(async () => {
     if (!anchorWallet) return;
@@ -207,11 +255,12 @@ export default function DashboardFeature() {
         title="Claim your $LEGEND!"
         subtitle={'Come on tough guy, press the button'}
       />
+      claim status: {claimStatus}
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
         <div className="space-y-2 ">
           {claimIndex > -1 && (
             <button onClick={handleClaim} className="btn btn-lg btn-primary">
-              CLAIM {claimAmount} $LEGEND
+              CLAIM {claimAmount / 1e9} $LEGEND
             </button>
           )}
 
