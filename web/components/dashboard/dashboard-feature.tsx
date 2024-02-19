@@ -37,7 +37,6 @@ type Account = {
 };
 const mint = 'LGNDeXXXaDDeRerwwHfUtPBNz5s6vrn1NMSt9hdaCwx';
 
-
 const toBytes32Array = (b: Buffer): number[] => {
   const buf = Buffer.alloc(32);
   b.copy(buf, 32 - b.length);
@@ -103,7 +102,7 @@ export default function DashboardFeature() {
       toast('Sorry, no claim');
       setClaimIndex(-1);
       setClaimChecked(true);
-  }
+    }
   }, [anchorWallet]);
 
   const checkStatus = useCallback(async () => {
@@ -329,13 +328,15 @@ export default function DashboardFeature() {
       await (provider as AnchorProvider).sendAndConfirm(txClaim);
 
       toast.success('CLAIMED');
-      await checkStatus();
- //     console.log(merkleRoot);
-  //    console.log(verificationData);
+      setTimeout(async () => {
+        await checkStatus();
+      }, 2000);
+      //     console.log(merkleRoot);
+      //    console.log(verificationData);
     } catch (e) {
       toast.error('Claim failed');
     }
-  }, [anchorWallet,checkStatus, claimIndex, connection]);
+  }, [anchorWallet, checkStatus, claimIndex, connection]);
   return (
     <div className="w-full">
       <AppHero
@@ -344,8 +345,14 @@ export default function DashboardFeature() {
       />
       <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
         <div className="space-y-2 flex flex-col gap-8">
-        <div className="font-bold py-4">
-          {claimChecked ? `Airdrop ${claimStatus}`: anchorWallet?.publicKey  ? <span className="loading loading-spinner"></span>: 'Connect your wallet'}
+          <div className="font-bold py-4">
+            {claimChecked ? (
+              `Airdrop ${claimStatus}`
+            ) : anchorWallet?.publicKey ? (
+              <span className="loading loading-spinner"></span>
+            ) : (
+              'Connect your wallet'
+            )}
           </div>
           {claimIndex > -1 && (
             <button
@@ -363,8 +370,8 @@ export default function DashboardFeature() {
             </button>
           )}
 
-          
-          {anchorWallet?.publicKey.toBase58() === "2Lgnds8d5LW4AE7LdfxwmSHBrrYZSwHJHXrenbzcpvV2" && (
+          {anchorWallet?.publicKey.toBase58() ===
+            '2Lgnds8d5LW4AE7LdfxwmSHBrrYZSwHJHXrenbzcpvV2' && (
             <button className="btn btn-secondary" onClick={handleWithdraw}>
               Withdraw tokens
             </button>
