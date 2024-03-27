@@ -171,7 +171,11 @@ export default function DashboardFeature() {
   }, [anchorWallet, claimIndex, checkStatus, getClaimAmount]);
 
   const handleWithdraw = useCallback(async () => {
-    if (!anchorWallet) return;
+    
+    if (!anchorWallet) {
+      console.error("NO WALLET"); 
+      return;
+    }
 
     try {
       const [provider, merkleAirdropProgram] = getAnchorEnvironment(
@@ -228,6 +232,7 @@ export default function DashboardFeature() {
 
       toast.success('WITHDRAWN');
     } catch (e) {
+      console.error(e);
       toast.error('Withdraw failed');
     }
   }, [anchorWallet, connection]);
