@@ -38,7 +38,8 @@ export function toWalletAdapterNetwork(
 export const defaultClusters: Cluster[] = [
   {
     name: 'mainnet-beta',
-    endpoint: "https://chaotic-green-spree.solana-mainnet.quiknode.pro/",
+    //endpoint: "https://chaotic-green-spree.solana-mainnet.quiknode.pro/",
+    endpoint:      "https://nameless-omniscient-snowflake.solana-mainnet.quiknode.pro/f408409128d007e26d859aabb1c1ea437b24f696/",
     network: ClusterNetwork.Mainnet,
   },
   {
