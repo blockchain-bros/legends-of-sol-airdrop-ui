@@ -206,6 +206,17 @@ export default function DashboardFeature() {
       );
       const vault = associatedAddress({ mint: tokenMint, owner: airdropState });
 
+      console.log({
+        authority: anchorWallet.publicKey.toBase58(),
+          authorityMintAta: associatedAddress({
+            mint: tokenMint,
+            owner: anchorWallet.publicKey!,
+          }).toBase58(),
+          tokenMint:tokenMint.toBase58(),
+          airdropState:airdropState.toBase58(),
+          vault:vault.toBase58()
+      })
+
       const claimIxn = await (merkleAirdropProgram as Program<Idl>).methods
         .withdrawFromVault(toBytes32Array(merkleRoot))
         .accounts({
