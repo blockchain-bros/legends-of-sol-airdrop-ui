@@ -97,7 +97,7 @@ export default function DashboardFeature() {
       }
       setClaimIndex(index);
       setClaimChecked(true);
-      setclaimAmount(amount);
+      setclaimAmount(amount/1e9);
     } catch (e) {
       toast('Sorry, no claim');
       setClaimIndex(-1);
@@ -114,16 +114,14 @@ export default function DashboardFeature() {
         connection,
         new PublicKey(idl.metadata.address)
       );
-
-      console.log(provider);
-
       const amountsByRecipient: Account[] = [];
       for (const line of airdropData as []) {
+        console.log(line)
         const { account, amount } = line;
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * Math.pow(10, 9))),
+          amount: new BN(Number(amount)),
         });
       }
 
@@ -160,14 +158,15 @@ export default function DashboardFeature() {
         setClaimStatus('Unclaimed');
       }
     } catch (e) {
-      console.log(e);
       setClaimStatus('Unclaimed');
     }
   }, [anchorWallet, claimIndex, connection]);
 
   useEffect(() => {
-    if (anchorWallet?.publicKey) getClaimAmount();
-    if (anchorWallet?.publicKey) checkStatus();
+    if (anchorWallet?.publicKey) {
+      checkStatus();
+      getClaimAmount();
+    }
   }, [anchorWallet, claimIndex, checkStatus, getClaimAmount]);
 
   const handleWithdraw = useCallback(async () => {
@@ -191,7 +190,7 @@ export default function DashboardFeature() {
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * Math.pow(10, 9))),
+          amount: new BN(Number(amount * 1)),
         });
       }
 
@@ -214,9 +213,13 @@ export default function DashboardFeature() {
           }).toBase58(),
           tokenMint:tokenMint.toBase58(),
           airdropState:airdropState.toBase58(),
-          vault:vault.toBase58()
+          vault:vault.toBase58(),
+          merkleRoot: merkleRoot
       })
 
+      const computeBudgetFeee = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 25_000,
+      });
       const claimIxn = await (merkleAirdropProgram as Program<Idl>).methods
         .withdrawFromVault(toBytes32Array(merkleRoot))
         .accounts({
@@ -238,13 +241,13 @@ export default function DashboardFeature() {
       const txClaim = new Transaction({
         recentBlockhash: latestBlockHashClaim.blockhash,
       });
-      txClaim.add(...[claimIxn]);
+      txClaim.add(...[computeBudgetFeee, claimIxn]);
       await (provider as AnchorProvider).sendAndConfirm(txClaim);
 
-      toast.success('WITHDRAWN');
+      toast.success('Withdrawn');
     } catch (e) {
       console.error(e);
-      toast.error('Withdraw failed');
+      toast.error('Withdraw failed' + JSON.stringify(e));
     }
   }, [anchorWallet, connection]);
 
@@ -264,7 +267,7 @@ export default function DashboardFeature() {
         amountsByRecipient.push({
           account: new PublicKey(account),
           // the amount must be multiplied by decimal points
-          amount: new BN(Number(amount * Math.pow(10, 9))),
+          amount: new BN(Number(amount)),
         });
       }
 
@@ -307,10 +310,12 @@ export default function DashboardFeature() {
           Buffer.from(proofElem),
         ]);
       }
-      const computeBudgetIx = ComputeBudgetProgram.setComputeUnitLimit({
-        units: 400_000,
+      const computeBudgetIx = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 25_000,
       });
 
+      //const amount = new BN(Number(amountsByRecipient[claimIndex].amount)*1e9);
+      //console.log("claim Amount",Number(amount));
       const claimIxn = await (merkleAirdropProgram as Program<Idl>).methods
         .claim(
           toBytes32Array(merkleRoot),
@@ -347,9 +352,8 @@ export default function DashboardFeature() {
       setTimeout(async () => {
         await checkStatus();
       }, 2000);
-      //     console.log(merkleRoot);
-      //    console.log(verificationData);
     } catch (e) {
+      console.error(e);
       toast.error('Claim failed');
     }
   }, [anchorWallet, checkStatus, claimIndex, connection]);
