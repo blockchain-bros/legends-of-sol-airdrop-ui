@@ -116,7 +116,6 @@ export default function DashboardFeature() {
       );
       const amountsByRecipient: Account[] = [];
       for (const line of airdropData as []) {
-        console.log(line)
         const { account, amount } = line;
         amountsByRecipient.push({
           account: new PublicKey(account),
@@ -204,18 +203,6 @@ export default function DashboardFeature() {
         new PublicKey(idl.metadata.address)
       );
       const vault = associatedAddress({ mint: tokenMint, owner: airdropState });
-
-      console.log({
-        authority: anchorWallet.publicKey.toBase58(),
-          authorityMintAta: associatedAddress({
-            mint: tokenMint,
-            owner: anchorWallet.publicKey!,
-          }).toBase58(),
-          tokenMint:tokenMint.toBase58(),
-          airdropState:airdropState.toBase58(),
-          vault:vault.toBase58(),
-          merkleRoot: merkleRoot
-      })
 
       const computeBudgetFeee = ComputeBudgetProgram.setComputeUnitPrice({
         microLamports: 25_000,
